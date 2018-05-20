@@ -1,3 +1,8 @@
+const supportHeroes = ["ana", "brigitte", "lucio", "mercy", "moira", "symmetra", "zenyatta"];
+const offenseHeroes = ["doomfist", "genji", "mccree", "pharah", "reaper", "soldier76", "sombra", "tracer"];
+const defenseHeroes = ["bastion", "hanzo", "junkrat", "mei", "torbjorn", "widowmaker"];
+const tankHeroes = ["dva", "orisa", "reinhardt", "roadhog", "winston", "zarya"];
+
 function doGet() {
   // Clears the results container
   $(".results-container").empty();
@@ -36,19 +41,36 @@ function getSuccess(response) {
   let playtimeQuick = response.us.heroes.playtime.quickplay;
   let playtimeComp = response.us.heroes.playtime.competitive;
 
+  let totalTimeQuick = totalTime(playtimeQuick);
+  let totalTimeComp = totalTime(playtimeComp);
+
   $(".results-container").append("<h3>Quick Play</h3>");
-  $(".results-container").append(`<p>Versatility: ${calculateVersatility(playtimeQuick)}%</p>`);
+  $(".results-container").append("<ul id='quick'></ul>");
+  $("#quick").append(`<li>Versatility: ${calculateVersatility(totalTimeQuick, playtimeQuick)}%</li>`);
+  $("#quick").append(`<li>Support: ${calculateSupport(totalTimeQuick, playtimeQuick)}%</li>`);
+  $("#quick").append(`<li>Offense: ${calculateOffense(totalTimeQuick, playtimeQuick)}%</li>`);
+  $("#quick").append(`<li>Defense: ${calculateDefense(totalTimeQuick, playtimeQuick)}%</li>`);
+  $("#quick").append(`<li>Tank: ${calculateTank(totalTimeQuick, playtimeQuick)}%</li>`);
 
   $(".results-container").append("<h3>Competitive</h3>");
-  $(".results-container").append(`<p>Versatility: ${calculateVersatility(playtimeComp)}%</p>`);
+  $(".results-container").append("<ul id='comp'></ul>");
+  $("#comp").append(`<li>Versatility: ${calculateVersatility(totalTimeComp, playtimeComp)}%</li>`);
+  $("#comp").append(`<li>Support: ${calculateSupport(totalTimeComp, playtimeComp)}%</li>`);
+  $("#comp").append(`<li>Offense: ${calculateOffense(totalTimeComp, playtimeComp)}%</li>`);
+  $("#comp").append(`<li>Defense: ${calculateDefense(totalTimeComp, playtimeComp)}%</li>`);
+  $("#comp").append(`<li>Tank: ${calculateTank(totalTimeComp, playtimeComp)}%</li>`);
 }
 
-function calculateVersatility(playtime) {
+function totalTime(playtime) {
   var total = 0;
   for (hero in playtime) {
     total += playtime[hero];
   }
 
+  return total;
+}
+
+function calculateVersatility(total, playtime) {
   var ratios = [];
   for (hero in playtime) {
     ratios.push(playtime[hero] / total);
@@ -63,6 +85,54 @@ function calculateVersatility(playtime) {
   versatility.*/
   var versatility = Math.round(((1 - ratios[0]) / (1 - 1 / 27)) * 100);
   return versatility;
+}
+
+function calculateSupport(total, playtime) {
+  var suppTotal = 0;
+  for (hero in playtime) {
+    if (supportHeroes.indexOf(hero) >= 0) {
+      suppTotal += playtime[hero];
+    }
+  }
+
+  var support = Math.round((suppTotal / total) * 100);
+  return support;
+}
+
+function calculateOffense(total, playtime) {
+  var offTotal = 0;
+  for (hero in playtime) {
+    if (offenseHeroes.indexOf(hero) >= 0) {
+      offTotal += playtime[hero];
+    }
+  }
+
+  var offense = Math.round((offTotal / total) * 100);
+  return offense;
+}
+
+function calculateDefense(total, playtime) {
+  var defTotal = 0;
+  for (hero in playtime) {
+    if (defenseHeroes.indexOf(hero) >= 0) {
+      defTotal += playtime[hero];
+    }
+  }
+
+  var defense = Math.round((defTotal / total) * 100);
+  return defense;
+}
+
+function calculateTank(total, playtime) {
+  var tankTotal = 0;
+  for (hero in playtime) {
+    if (tankHeroes.indexOf(hero) >= 0) {
+      tankTotal += playtime[hero];
+    }
+  }
+
+  var tank = Math.round((tankTotal / total) * 100);
+  return tank;
 }
 
 function setup() {
