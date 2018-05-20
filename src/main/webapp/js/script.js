@@ -53,9 +53,15 @@ function calculateVersatility(playtime) {
   for (hero in playtime) {
     ratios.push(playtime[hero] / total);
   }
+
+  // Sorts descending
   ratios.sort(function(a, b) {return b - a});
 
-  var versatility = (1 - ratios[0]).toFixed(2) * 100;
+  /* ratios[0] corresponds to the hero with the most playtime. Versatility is
+  calculated by subtracting the largest ratio from 1, then finding the ratio of
+  this new value to the value (1 - 1/27) which corresponds to having 100%
+  versatility.*/
+  var versatility = Math.round(((1 - ratios[0]) / (1 - 1 / 27)) * 100);
   return versatility;
 }
 
