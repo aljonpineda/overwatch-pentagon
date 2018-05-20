@@ -1,0 +1,23 @@
+@import url('https://fonts.googleapis.com/css?family=Rubik');
+
+body {
+  background-color: #405275;
+  font-family: "Rubik", sans-serif;
+  color: white;
+}
+
+.search-container {
+  text-align: center;
+}
+
+#u_input, #submit_button {
+  font-family: "Rubik", sans-serif;
+}
+
+#title {
+  text-align: center;
+}
+
+.not_achieved {
+  color: gray;
+}
