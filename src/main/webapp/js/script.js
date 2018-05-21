@@ -3,6 +3,13 @@ const offenseHeroes = ["doomfist", "genji", "mccree", "pharah", "reaper", "soldi
 const defenseHeroes = ["bastion", "hanzo", "junkrat", "mei", "torbjorn", "widowmaker"];
 const tankHeroes = ["dva", "orisa", "reinhardt", "roadhog", "winston", "zarya"];
 
+// For the pentagon
+const versatilityDistance = 95;
+const supportDistance = Math.sqrt((95 * 95) + (23.75 * 23.75));
+const offenseDistance = Math.sqrt((71.25 * 71.25) + (95 * 95));
+const defenseDistance = offenseDistance;
+const tankDistance = supportDistance;
+
 function doGet() {
   // Clears the results container
   $(".results-container").empty();
@@ -60,9 +67,10 @@ function getSuccess(response) {
     calculateTank(totalTimeComp, playtimeComp)
   ];
 
-  drawPentagon(quickStats);
-
   $(".results-container").append("<h3>Quick Play</h3>");
+  $(".results-container").append("<canvas id='canvasQuick' width='200' height='200'></canvas>");
+  drawPentagon("canvasQuick", quickStats);
+
   $(".results-container").append("<ul id='quick'></ul>");
   $("#quick").append(`<li>Versatility: ${quickStats[0]}%</li>`);
   $("#quick").append(`<li>Support: ${quickStats[1]}%</li>`);
@@ -71,6 +79,9 @@ function getSuccess(response) {
   $("#quick").append(`<li>Tank: ${quickStats[4]}%</li>`);
 
   $(".results-container").append("<h3>Competitive</h3>");
+  $(".results-container").append("<canvas id='canvasComp' width='200' height='200'></canvas>");
+  drawPentagon("canvasComp", compStats);
+
   $(".results-container").append("<ul id='comp'></ul>");
   $("#comp").append(`<li>Versatility: ${compStats[0]}%</li>`);
   $("#comp").append(`<li>Support: ${compStats[1]}%</li>`);
@@ -155,12 +166,12 @@ function calculateTank(total, playtime) {
   return tank;
 }
 
-function drawPentagon(stats) {
-  var canvas = document.getElementById("canvas");
+function drawPentagon(canvasID, stats) {
+  var canvas = document.getElementById(canvasID);
   var ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  var points = [
+  const points = [
     {x: 100, y: 0},
     {x: 200, y: 75},
     {x: 175, y: 200},
@@ -168,31 +179,89 @@ function drawPentagon(stats) {
     {x: 0, y: 75}
   ];
 
-  var supportDistance = Math.sqrt((100 * 100) + (25 * 25));
-  var offenseDistance = 125;
+  var newVersatilityDistance = (stats[0] / 100) * versatilityDistance;
+
+  var newSupportDistance = (stats[1] / 100) * supportDistance;
+  var supportSolutions = solveQuadratic(17/16, (-1 * 223.125),
+      (11714.0625 - Math.pow(newSupportDistance, 2))
+  );
+
+  var newOffenseDistance = (stats[2] / 100) * offenseDistance;
+  var offenseSolutions = solveQuadratic(25/9, (-1 * 10375/18),
+      (29900.17361 - Math.pow(newOffenseDistance, 2))
+  );
+
+  var newDefenseDistance = (stats[3] / 100) * defenseDistance;
+  var defenseSolutions = solveQuadratic(25/9, (-1 * 9625/18),
+      (25733.50694 - Math.pow(newDefenseDistance, 2))
+  );
+
+  var newTankDistance = (stats[4] / 100) * tankDistance;
+  var tankSolutions = solveQuadratic(17/16, (-1 * 201.875),
+      (9589.0625 - Math.pow(newTankDistance, 2))
+  );
+
+  var supportX = supportSolutions[0];
+  var offenseX = offenseSolutions[0];
+  var defenseX = defenseSolutions[1];
+  var tankX = tankSolutions[1];
 
   var corners = [
-    {x: 100, y: (100 - stats[0])},
-    {x: 200, y: 75},
-    {x: 175, y: 200},
-    {x: 25, y: 200},
-    {x: 0, y: 75}
+    {x: 100, y: 95 - newVersatilityDistance},
+    {x: supportX, y: 200 - solveSupportY(supportX)},
+    {x: offenseX, y: 200 - solveOffenseY(offenseX)},
+    {x: defenseX, y: 200 - solveDefenseY(defenseX)},
+    {x: tankX, y: 200 - solveTankY(tankX)},
+    {x: 100, y: 95 - newVersatilityDistance}
   ];
 
   ctx.beginPath();
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = "black";
 
   for (var i = 0; i < points.length; i++) {
     ctx.moveTo(100, 100);
     ctx.lineTo(points[i].x, points[i].y);
   }
 
-  for (var i = 0; i < corners.length; i++) {
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.strokeStyle = "white";
+
+  ctx.moveTo(corners[0].x, corners[0].y);
+
+  for (var i = 1; i < corners.length; i++) {
     ctx.lineTo(corners[i].x, corners[i].y);
   }
 
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = "white";
   ctx.stroke();
+}
+
+function solveQuadratic(a, b, c) {
+  var x1 = ((-1 * b) + Math.sqrt((b * b) - (4 * a * c))) / (2 * a);
+  var x2 = ((-1 * b) - Math.sqrt((b * b) - (4 * a * c))) / (2 * a);
+
+  var solutions = [];
+  solutions.push(x1);
+  solutions.push(x2);
+  return solutions;
+}
+
+function solveSupportY(x) {
+  return (x / 4) + 75;
+}
+
+function solveOffenseY(x) {
+  return (-1 * (4/3) * x) + (700/3);
+}
+
+function solveDefenseY(x) {
+  return ((4/3) * x) - (100/3);
+}
+
+function solveTankY(x) {
+  return (-1 * (x / 4)) + 125;
 }
 
 function setup() {

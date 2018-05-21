@@ -22,7 +22,7 @@ body {
   color: gray;
 }
 
-#canvas {
+#canvasQuick, #canvasComp {
   display: block;
   margin-top: 2%;
   margin-left: auto;

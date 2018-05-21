@@ -21,8 +21,6 @@
     <button id="submit_button">Submit</button>
   </div>
 
-  <canvas id="canvas" width="200" height="200"></canvas>
-
   <div class="results-container">
   </div>
 
